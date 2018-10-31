@@ -4,6 +4,7 @@
 
 ### [关于元素到窗口距离的一些整理(2018.10.30)][1]
 
+### [上传文件(2018.09.27)][5]
 ### [使用Visual Studio Code对Node.js进行断点调试(2018.07.20)][4]
 ### [Service Workers(2017.12.27)][3]
 ### [Web Workers(2017.12.22)][2]
@@ -13,3 +14,4 @@
  [2]: https://github.com/includeios/document/issues/2
  [3]: https://github.com/includeios/document/issues/3
  [4]: https://github.com/includeios/document/issues/4
+ [5]: https://github.com/includeios/document/issues/5
