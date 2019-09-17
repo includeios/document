@@ -1,6 +1,7 @@
 # document
 > 平时写的小文档整理，不定期更新~
 
+### [liunx查询日志常用命令收集（2019.09.17）][13]
 ### [浏览器的渲染过程2.0 — Composite（2019.08.22）][12]
 ---
 ### [动态规划(2019.05.31)][9]
@@ -33,3 +34,4 @@
  [10]:https://github.com/includeios/document/issues/8
  [11]:https://github.com/includeios/document/issues/9
  [12]:https://github.com/includeios/document/issues/10
+ [13]:https://github.com/includeios/document/issues/11
