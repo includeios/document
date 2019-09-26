@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>intersection observer的相关例子</title>
+    <link rel="stylesheet" type="text/css" href="./index.css">
+    <style>
+      .box{
+        width: 100px;
+        height: 100px;
+        background: red;
+        /* display: inline-block; */
+        margin-bottom: 20px;
+      }
+      .img-contain{
+        text-align: center;
+        height: 200vh;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="contain">
+      <div class="img-contain">
+        <div class="box"></div>
+        <div class="box"></div>
+        <div class="box"></div>
+      </div>     
+    </div>
+    <!-- 例子一：懒加载 -->
+    <!-- <div class="contain lazy-load-contain">
+      <div class="img-contain">
+        <img src="" data-origin="./img/pic1.jpg" />
+        <img src="" data-origin="./img/pic2.jpg" />
+        <img src="" data-origin="./img/pic3.jpg" />
+        <img src="" data-origin="./img/pic4.jpg" />
+        <img src="" data-origin="./img/pic5.jpg" />
+        <img src="" data-origin="./img/pic6.jpg" />
+        <img src="" data-origin="./img/pic7.jpg" />
+      </div>     
+    </div> -->
+
+    <!-- 例子二：列表滚动加载数据 -->
+    <!-- <div class="contain list-scroll-load">
+      <div class="img-contain">
+      </div>   
+      <div class="footer-reference">加载中...</div>  
+    </div> -->
+
+    <!-- 例子三：列表滚动加载数据+懒加载 -->
+    <!-- <div class="contain list-scroll-lazy-load">
+      <div class="img-contain">
+      </div>   
+      <div class="footer-reference">加载中...</div>  
+    </div> -->
+
+    <!-- 例子四：吸顶 -->
+    <!-- <div class="contain stick-top-contain">
+      <div class="title">标题XXXXX</div>
+      <div class="top-reference"></div>
+      <div class="stick-bar">筛选框等需要吸顶的元素</div>
+      <div class="img-contain">
+        <img src="./img/pic1.jpg" />
+        <img src="./img/pic2.jpg" />
+        <img src="./img/pic3.jpg" />
+        <img src="./img/pic4.jpg" />
+        <img src="./img/pic5.jpg" />
+        <img src="./img/pic6.jpg" />
+        <img src="./img/pic7.jpg" />
+      </div>  
+    </div> -->
+
+    <!-- 例子五：动画展示 -->
+    <!-- <div class="contain animation-show">
+      <div class="prompt-msg">完成度：0%</div>
+      <div class="animation-pillar">
+        <div class="pillar"></div>
+      </div>     
+    </div> -->
+  </body>
+
+  <script>
+    // 懒加载
+    const lazyLoading = ()=>{
+      const images = document.querySelectorAll('.lazy-load-contain img')
+
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(item => {
+          if(item.isIntersecting){
+            console.log('开始懒加载：',item.target.dataset.origin)
+            item.target.src = item.target.dataset.origin //开始加载图片
+            observer.unobserve(item.target)  //停止监听已经开始加载的图片
+          }
+        })
+      }, {
+        root:document.querySelector('.lazy-load-contain'),
+        rootMargin:"0px 0px 50px 0px"
+      })
+
+      images.forEach(item=>observer.observe(item))
+    }
+
+    // 列表滚动加载
+    const listLoading = ()=>{
+      let listDate = []
+
+      const addDate = ()=>{
+        listDate = listDate.concat(["./img/pic1.jpg","./img/pic2.jpg","./img/pic3.jpg", "./img/pic4.jpg","./img/pic5.jpg","./img/pic6.jpg","./img/pic7.jpg"])
+      }
+
+      const convertHtml = ()=>{
+        let dom = '' 
+        listDate.forEach(item=>{
+          dom += `<img src="${item}"/>`
+        })
+        document.querySelector('.list-scroll-load .img-contain').innerHTML = dom
+      }
+
+      const observer = new IntersectionObserver(entries => {
+        //如果底部标识进入交叉区，开始请求下一页数据
+        if(entries[0].isIntersecting){
+          console.log('开始请求数据')
+          addDate()
+          convertHtml()
+        }
+      }, {
+        root:document.querySelector('.list-scroll-load'),
+        rootMargin:"0px 0px 100px 0px" //在底部距离100px的时候就开始加载数据
+      })
+
+      observer.observe(document.querySelector('.footer-reference'))
+    }
+    
+    // 滚动加载 + 懒加载
+    const lazyListLoading = ()=>{
+      let listDate = []
+
+      const addDate = ()=>{
+        listDate = listDate.concat(["./img/pic1.jpg","./img/pic2.jpg","./img/pic3.jpg", "./img/pic4.jpg","./img/pic5.jpg","./img/pic6.jpg","./img/pic7.jpg"])
+      }
+
+      const lazyObserver = new IntersectionObserver(entries => {
+        entries.forEach(item => {
+          if(item.isIntersecting){
+            console.log('开始懒加载：',item.target.dataset.origin)
+            item.target.src = item.target.dataset.origin //开始加载图片
+            lazyObserver.unobserve(item.target)  //停止监听已经开始加载的图片
+          }
+        })
+      }, {
+        root:document.querySelector('.list-scroll-lazy-load'),
+        rootMargin:"0px 0px 50px 0px"
+      })
+
+      const convertHtml = ()=>{
+        let dom = '' 
+        listDate.forEach(item=>{
+          dom += `<img src="" data-origin="${item}"/>`
+        })
+        document.querySelector('.list-scroll-lazy-load .img-contain').innerHTML = dom
+        const images = document.querySelectorAll('.list-scroll-lazy-load img')
+        images.forEach(item=>lazyObserver.observe(item))
+      }
+
+      const listObserver = new IntersectionObserver(entries => {
+        //如果底部标识进入交叉区，开始请求下一页数据
+        if(entries[0].isIntersecting){
+          console.log('开始请求数据')
+          addDate()
+          convertHtml()
+        }
+      }, {
+        root:document.querySelector('.list-scroll-lazy-load'),
+        rootMargin:"0px 0px 100px 0px" //在底部距离100px的时候就开始加载数据
+      })
+
+      listObserver.observe(document.querySelector('.list-scroll-lazy-load .footer-reference'))
+    }
+
+    //吸顶
+    const stickTop = ()=>{
+      const observer = new IntersectionObserver(entries => {
+        if(entries[0].isIntersecting){
+          document.querySelector('.stick-bar').classList.remove('fix-top')
+        } else {
+          document.querySelector('.stick-bar').classList.add('fix-top')
+        }
+      }, {
+        root:document.querySelector('.stick-top-contain'),
+      })
+
+      observer.observe(document.querySelector('.top-reference'))
+    }
+    
+    //一些动画效果
+    const animationPilar = ()=>{
+      //一直往下滚动
+      const animationInterval = setInterval(()=>{
+        document.querySelector('.animation-show').scrollBy({
+          left:0,
+          top:-100,
+          behavior: "smooth"
+        })
+      },100)
+      
+      const observer = new IntersectionObserver(entries => {
+        if(entries[0].intersectionRatio >= 0.95){
+          clearInterval(animationInterval)
+        }
+        document.querySelector('.prompt-msg').innerHTML = `完成度:${parseInt(entries[0].intersectionRatio * 100)}%`
+      }, {
+        root:document.querySelector('.animation-show'),
+        threshold:Array.from({length:100},(v, k) => k/100)
+      })
+      observer.observe(document.querySelector('.pillar'))   
+    }
+    
+    // lazyLoading()
+    // listLoading()
+    // lazyListLoading()
+    // stickTop()
+    // animationPilar()
+
+    const box = document.querySelectorAll('.box')
+
+    const observer = new IntersectionObserver(entries => {
+      console.log(`此时一共有${entries.length}个元素发生交叉行为`)
+    })
+
+    box.forEach(item=>observer.observe(item))
+  </script>
+</html>

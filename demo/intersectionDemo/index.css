@@ -1,0 +1,60 @@
+body {
+  margin: 0
+}
+.contain{
+  height: 100vh;
+  width: 100vw;
+  overflow: scroll;
+}
+.img-contain img {
+  width: 90%;
+  margin: 0 5% 50px 5%;
+  flex: 0;
+}
+.footer-reference,.title,.stick-bar,.prompt-msg{
+  width: 100%;
+  height: 80px;
+  font-size: 44px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 80px;
+  color: #333;
+}
+.title{
+  margin:20px 0;
+}
+.stick-bar{
+  background: #666666;
+  color: #fff;
+  margin-bottom:40px;
+}
+.prompt-msg{
+  position:fixed;
+  background: transparent;
+  top: 0;
+}
+.fix-top{
+  position: fixed;
+  top: 0;
+}
+.lazy-load-contain .img-contain{
+  height: 500vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.list-scroll-load .img-contain{
+  width: 100%;
+}
+.animation-pillar{
+  height: 100vh;
+  width: 30%;
+  margin: 0 auto;
+  padding-top: 100vh
+}
+.pillar{
+  height: 100vh;
+  background: #666;
+  border-radius: 30px 30px 0 0;
+}
