@@ -1,6 +1,8 @@
 # document
 > 平时写的小文档整理，不定期更新~
 
+### [新电脑软件配置（2019.10.11）][16]
+---
 ### [Intersection observer 实现滚动交互（2019.09.26）][15]
 ### [如何优雅的进行版本回退（2019.09.17）][14]
 ### [liunx查询日志常用命令收集（2019.09.17）][13]
@@ -39,3 +41,4 @@
  [13]:https://github.com/includeios/document/issues/11
  [14]:https://github.com/includeios/document/issues/12
  [15]:https://github.com/includeios/document/issues/13
+ [16]:https://github.com/includeios/document/issues/14
