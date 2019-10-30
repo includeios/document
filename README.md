@@ -1,6 +1,7 @@
 # document
 > 平时写的小文档整理，不定期更新~
 
+### [vue数据双向绑定的源码解析（2019.10.30）][17]
 ### [新电脑软件配置（2019.10.11）][16]
 ---
 ### [Intersection observer 实现滚动交互（2019.09.26）][15]
@@ -42,3 +43,4 @@
  [14]:https://github.com/includeios/document/issues/12
  [15]:https://github.com/includeios/document/issues/13
  [16]:https://github.com/includeios/document/issues/14
+ [17]:https://github.com/includeios/document/issues/15
