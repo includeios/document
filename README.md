@@ -1,6 +1,7 @@
 # document
 > 平时写的小文档整理，不定期更新~
 
+### [first-of-type（2019.11.11）][18]
 ### [vue数据双向绑定的源码解析（2019.10.30）][17]
 ### [新电脑软件配置（2019.10.11）][16]
 ---
@@ -44,3 +45,4 @@
  [15]:https://github.com/includeios/document/issues/13
  [16]:https://github.com/includeios/document/issues/14
  [17]:https://github.com/includeios/document/issues/15
+ [18]:https://github.com/includeios/document/issues/16
