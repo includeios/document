@@ -1,5 +1,7 @@
+# 可移步至 https://includeios.github.io 博客下阅读文章
+
 # document
-> 平时写的小文档整理，不定期更新~
+> 更新与博客 https://includeios.github.io
 
 ### [基于vue搭建pwa应用（一）（2019.11.22）][19]
 ### [first-of-type（2019.11.11）][18]
