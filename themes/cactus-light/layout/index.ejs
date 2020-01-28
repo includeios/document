@@ -29,9 +29,7 @@
       </li>
     <% }); %>
   </ul>
-  <% if (theme.customize.show_all_posts) { %>
-    <%- partial('_partial/pagination') %>
-  <% } %>
+  <a class="more" href="<%- url_for("archives") %>">更多内容...</a>
 </section>
 
 <% if (site.data.projects) { %>
