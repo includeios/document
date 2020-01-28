@@ -47,7 +47,7 @@ highlight:
 # order_by: Posts order. (Order by date descending by default)
 index_generator:
   path: ''
-  per_page: 15
+  per_page: 0
   order_by: -date
 
 # Category & Tag
@@ -70,7 +70,7 @@ use_date_for_updated: false
 
 # Pagination
 ## Set per_page to 0 to disable pagination
-per_page: 15
+per_page: 0
 pagination_dir: page
 
 # Include / Exclude file(s)
@@ -84,10 +84,38 @@ ignore:
 ## Themes: https://hexo.io/themes/
 theme: cactus-light
 
+live2d:
+  enable: true
+  pluginModelPath: assets/
+  model:
+    use: /live2d_models/umaru/umaru.model.json
+  display:
+    position: left
+    width: 150
+    height: 300
+    hOffset: 200
+    vOffset: 180
+  mobile:
+    show: false
+  react:
+    opacity: 0.7
+
+# 自动生成sitemap
+sitemap:
+  path: sitemap.xml
+baidusitemap:
+  path: baidusitemap.xml
+
+search:
+  path: search.xml
+  field: post
+  
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: 'git'
-  repo: 'https://github.com/includeios/includeios.github.io.git'
+  repository:
+    github: 'https://github.com/includeios/includeios.github.io.git'
+    coding: 'git@e.coding.net:atangge_tripod/atangge_tripod.git'
   branch: master
 

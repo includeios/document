@@ -25,15 +25,15 @@ customize:
       apple:
         url: /images/apple-touch-icon.png
         gravator: false
+    search:
+      url: /images/search.png
+      gravator: false
     social_links:
         github: https://github.com/includeios
         mafengwo: http://www.mafengwo.cn/u/84576516.html
     show_all_posts: false
     post_count: 5
     highlight: monokai-sublime
-
-# RSS
-rss: false
 
 # Plugins
 plugins:

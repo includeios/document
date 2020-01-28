@@ -10,6 +10,9 @@
           <%- partial('_partial/header') %>
         <% } %>
         <%- body %>
+        <% if(page && page.path && page.path.indexOf('search') !== -1) {%>
+          <%- partial('_partial/post/search') %>
+        <% } %>
     </div>
     <% if (is_post()) { %>
       <%- partial('_partial/post/actions_mobile') %>

@@ -103,4 +103,37 @@ $(document).ready(function() {
       });
     }
   }
+
+  const search = window.location.search.replace('?','').split('=')
+  
+  if(search[0] === 'search'){
+    const text = search[1]
+    emptyFlag = true
+    $('.post-list h2').hide()
+    $('.post-list .post-item').each(function(){
+      if($(this).text().indexOf(text) === -1) {
+        $(this).hide()
+      } else {
+        emptyFlag = false
+      }
+    });
+    if(emptyFlag) {
+      $('.post-list').text('暂无此类文章')
+    }
+  }
+});
+
+$('#search-input').bind('keyup', function(event) {
+  if (event.keyCode == "13") {
+      //回车执行查询
+      $('#search-icon').click();
+  }
+});
+
+$('#search-icon').bind('click', function(event) {
+  const searchText = $('#search-input')[0].value
+  if(searchText){
+    window.searchText = searchText
+    window.open('/archives/?search='+searchText)
+  }
 });
