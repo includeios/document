@@ -4,31 +4,31 @@ title: git合并原理
 date: 2020-06-09
 tag: [git]
 ---
-相信刚开始使用git的时候大家都会遇到这些困惑：为什么我本地有些文件合并完远程代码就消失了？我到底应该什么时候使用rebase什么时候使用merge？为什么我合并几个commit记录会有这么这么多冲突？
+相信刚开始使用git的时候大家都会遇到这些困惑：为什么我本地有些文件合并完远程代码后就消失了？我到底应该什么时候使用rebase什么时候使用merge？为什么我rebase代码时会有这么多冲突？
 
 在我们搞清楚git的底层合并原理时，这些问题就迎刃而解了。
 
 ## Tree-Way Merge
 
-假设有两个同学在各自的分支上对同一个文件进行修改，如下图
+假设有两个同学在各自的分支上对同一个文件进行修改，如下图：
 
 ![image-20200603204547200](/images/2020/git1/image-20200603204547200.png)
 
 这个时候我们需要合并两个分支成一个分支，如果我们只对这两个文件进行对比，那么在代码合并时，只知道这两个文件在第30行有差异，却不知道应该采纳谁的版本。
 
-如果我知道这个文件的”原件“，那么通过和”原件“比对代码就能推算出应该采用谁的版本：
+如果我知道这个文件的“原件”，那么通过和“原件”代码的对比就能推算出应该采用谁的版本：
 
 ![image-20200603205137404](/images/2020/git1/image-20200603205137404.png)
 
-图示可以看出，Mine中的代码和Base一样，说明Mine并没有对这个文件做修改，而Yours中的代码合Base不一样，说明Yours在这个文件的基础上修改了内容，那么Yours和Mine合并应该采用Yours的内容。
+图示可以看出，Mine中的代码和Base一样，说明Mine中并没有对这行代码做修改，而Yours中的代码和Base不一样，说明Yours在Base的基础上对这行代码做了修改，那么Yours和Mine合并应该采用Yours中的内容。
 
 当然还有一种情况是三个文件的代码都不相同，这就需要我们自己手动去解决冲突了：
 
 ![image-20200603205528518](/images/2020/git1/image-20200603205528518.png)
 
-从上面的例子可以看出采用Tree-Way-Merge原理来合并代码有个重要前提是可以找到两份代码的”原件”，而git因为记录了文件的提交历史，再通过自身的合并算法就可以找到两个commit的公共commit是哪个，从而通过比对代码来进行合并。
+从上面的例子可以看出采用Tree-Way-Merge（也称为三向合并）原理来合并代码有个重要前提是可以找到两份代码的“原件”，而git因为记录了文件的提交历史，再通过自身的合并策略就可以找到两个commit的公共commit是哪个，从而通过比对代码来进行合并。
 
-那么后面我们就来详细说一下git是如何记录提交历史和git的合并算法是怎么推算出公共commit的。
+那么后面我们就来详细说一下**git是如何记录提交历史**和**git的合并策略是怎么推算出公共commit**的。
 
 ## git是如何记录提交历史的
 
@@ -44,13 +44,13 @@ tag: [git]
 - refs/   //目录，存储指向数据的提交对象指针
 ```
 
-其中HEAD文件，refs和objects目录是git能够记录提交历史的关键所在。
+其中`HEAD文件`，`refs目录`和`objects目录`是git能够记录提交历史的关键所在。
 
 ### blob object
 
 接下来我们创建两个文件，并通过`git add .`将修改提交到git暂存区中:
 
-```sqlite
+```
 echo '111' > a.txt
 echo '222' > b.txt
 git add .
@@ -64,7 +64,7 @@ git add .
 
 好奇的我们再来打印一下这两个文件里的内容：
 
-```js
+```
 cat c2/00906
 cat d5/234eb
 ```
@@ -75,16 +75,16 @@ cat d5/234eb
 
 > git cat-file [-t] [-p]  object filename   object的名字不用输入全，能唯一区分就好（一般都是6位）
 
-```js
+```
 git cat-file -t c20090
 git cat-file -p c20090
 ```
 
 ![image-20200604171246787](/images/2020/git1/image-20200604171246787.png)
 
-可以发现这个object文件是一个blob类型的节点，他的内容是”222“，也就是说这个object存储着`b.txt`文件的内容。
+可以发现这个object文件是一个`blob`类型的节点，他的内容是”222“，也就是说这个object存储着`b.txt`文件的内容。
 
-这是我们遇到的第一种git object：blob，它只存储一个文件的内容，不包含文件名等其他信息。该内容加上特定头部信息一起的 SHA-1 校验和为文件命名，作为这个object在git仓库中的唯一身份证。 校验和的前两个字符用于命名子目录，余下的 38 个字符则用作文件名。
+这是我们遇到的第一种git object：`blob`，它只存储一个文件的内容，不包含文件名等其他信息。该内容加上特定头部信息一起的 SHA-1 校验和为文件命名，作为这个object在git仓库中的唯一身份证。 校验和的前两个字符用于命名子目录，余下的 38 个字符则用作文件名。
 
 此时，我们的git仓库长这样：
 
@@ -100,7 +100,7 @@ git cat-file -p c20090
 
 ![image-20200604212748766](/images/2020/git1/image-20200604212748766.png)
 
-这里我们遇到了第二个git object类型：tree，它将当前的目录结构打了个快照，从它的存储内容中可以发现它存储了一个目录结构，以及每个文件的模式编号，对应的blob object Hash值，文件名。
+这里我们遇到了第二个git object类型：`tree`，它将当前的目录结构打了个快照，从它的存储内容中可以发现它存储了一个目录结构，以及每个文件的模式编号，对应的blob object Hash值，文件名。
 
 此刻我们的git仓库是这样的：
 
@@ -112,7 +112,7 @@ git cat-file -p c20090
 
 ![image-20200604214050940](/images/2020/git1/image-20200604214050940.png)
 
-至此我们得到了第三个git object类型：commit，它记录了当前项目tree object的Hash，作者/提交者的信息，以及这条commit的提交注释。
+至此我们得到了第三个git object类型：`commit`，它记录了当前项目tree object的Hash，作者/提交者的信息，以及这条commit的提交注释。
 
 此刻我们的仓库是这样的:
 
@@ -132,7 +132,7 @@ refs下存储着你所有分支的当前commit object Hash，HEAD相当于一个
 
 为了更具象的看一下ref和HEAD指针代表值的含义，我们切换到一个新分支重复我们刚才的操作，控制台输入：
 
-```sqlite
+```
 git checkout -b dev
 echo '333' > a.txt
 git add .
@@ -167,7 +167,7 @@ refs目录下增加了对应的heads/dev文件，记录的是我们新生成的c
 
 在控制台输入：
 
-```sqlite
+```
 git checkout master
 echo '444' > a.txt
 git add .
@@ -200,7 +200,7 @@ git会有很多合并策略，最常见的几种是 **Fast-foward，Recursice，
 
 ![image-20200609213018214](/images/2020/git1/image-20200609213018214.png)
 
-Fast -foward是最简单的一种合并策略，如图将dev分支合并到master分支上，git只需要将master分支的ref指向最后一个commit节点上：
+Fast-foward是最简单的一种合并策略，如图将dev分支合并到master分支上，git只需要将master分支的ref指向最后一个commit节点上：
 
 ![image-20200609213826958](/images/2020/git1/image-20200609213826958.png)
 
@@ -208,9 +208,9 @@ Fast-forward是git在合并两个没有分叉的分支时的默认行为，如�
 
 ### Recursive
 
-Recursive是git中最重要也是最常用的合并策略，简单概述为：通过算法寻找两个分支的最近公共祖先节点，再通过和公共祖先节点的代码对比，将其作为base节点使用Tree-Way Merge的策略来进行合并。
+Recursive是git中最重要也是最常用的合并策略，简单概述为：通过算法寻找两个分支的最近公共祖先节点，再将找到的公共祖先节点作为base节点使用三向合并的策略来进行合并。
 
-举个例子：圆圈里的字母为当前commit的内容，当我们要合并2，3两个分支时，先找到他们的公共祖先节点1，接着和节点1的内容进行对比，因为1的内容是A，所以2并没有修改内容，而3将内容改成B，所以最后的合并结果的内容也是B。
+举个例子：圆圈里的字母为当前commit中的内容，当我们要合并2，3两个分支时，先找到他们的公共祖先节点1，接着和节点1的内容进行对比，因为1的内容是A，所以2并没有修改内容，而3将内容改成B，所以最后的合并结果的内容也是B。
 
 ![image-20200614221411190](/images/2020/git1/image-20200614221411190.png)
 
@@ -224,25 +224,25 @@ Recursive是git中最重要也是最常用的合并策略，简单概述为：�
 
 ![image-20200614232900025](/images/2020/git1/image-20200614232900025.png)
 
-此时通过Three-Way merge策略合并（base节点的内容是A，两个待合并分支节点的内容是B和C）我们是无法得出应该使用哪个节点内容的，需要自己手动解决冲突。
+此时通过三向合并策略合并（base节点的内容是A，两个待合并分支节点的内容是B和C）我们是无法得出应该使用哪个节点内容的，需要自己手动解决冲突。
 
-而如果使用节点3作为base节点，那么通过Three-Way merge策略合并可以得出应该使用C来作为最终结果：
+而如果使用节点3作为base节点，那么通过三向合并策略合并（base节点的内容是B，两个待合并分支节点的内容是B和C）可以得出应该使用C来作为最终结果：
 
 ![image-20200614233646738](/images/2020/git1/image-20200614233646738.png)
 
-> 查看两个分支的最近公共祖先可以是使用命令git merge-base --all branch_1 branch_2
+> 查看两个分支的最近公共祖先可以使用命令：`git merge-base --all branch_1 branch_2`
 
 作为人类，其实我们很容易看出正确的合并结果应该是C，那么git要如何保证自己能找到正确的base节点，尽可能的减少代码的合并冲突呢？
 
 实际上git在合并时，如果查找发现满足条件的祖先节点不唯一，那么git会首先合并满足条件的祖先节点们，将合并完的结果作为一个虚拟的base节点来参与接下来的合并。
 
-如下图：git会首先合并节点2和节点3，找到他们的公共祖先节点1，在通过Three-Way merge策略得到一个虚拟的节点8，内容是B，再将节点8作为base节点，和节点5，节点6合并，比较完后得出最终版本的内容应该是C。
+如下图：git会首先合并节点2和节点3，找到他们的公共祖先节点1，在通过三项合并策略得到一个虚拟的节点8，内容是B，再将节点8作为base节点，和节点5，节点6合并，比较完后得出最终版本的内容应该是C。
 
 ![image-20200614234812708](/images/2020/git1/image-20200614234812708.png)
 
 **Ours & Theirs参数**
 
-在合并时我们可以带上`-Xours`， `-Xtheirs`参数，表明合并遇到冲突时全部使用其中一方的更改。如下图在master分支下执行`git merge -Xours dev`，最后产生的节点内容将自动采取master分支上的内容而不需要你再手动解决冲突。
+在合并时我们可以带上`-Xours`， `-Xtheirs`参数，表明合并遇到冲突时自动选择使用其中一方的更改。如下图在master分支下执行`git merge -Xours dev`，最后产生的节点内容将自动采取master分支上的内容而不需要你再手动解决冲突。
 
 ![image-20200615135704299](/images/2020/git1/image-20200615135704299.png)
 
@@ -252,7 +252,7 @@ Recursive是git中最重要也是最常用的合并策略，简单概述为：�
 
 Ours 策略和上文提到的`-Xours`参数非常相像，不同的是`-Xours`参数是只有合并遇到冲突时，git会自动丢弃被合并分支的更改保留原有分支上的内容，如果没有冲突，git还是会帮我们自动合并的。
 
-而Ours策略是无论有没有冲突，git会完全丢弃被合并分支上的内容，只保留合并分支的上的修改，只是在commit的记录上会保留另一个分支的记录。
+而Ours策略是无论有没有冲突，git都会完全丢弃被合并分支上的内容，只保留合并分支的上的修改，只是在commit的记录上会保留另一个分支的记录。
 
  如下图在master分支下执行`git merge -s ours dev`，最后产生的合并节点其内容和master分支上一个节点完全一样。
 
@@ -278,21 +278,21 @@ Octopus 策略可以让我们优雅的合并多个分支。前面我们介绍的
 
 看完git merge 的策略后，再看看另一个合并代码时常用的命令git rebase。git rebase和merge最大的不同是它会改变提交的历史。
 
-如下图：在dev上rebase master时，git会以master分支对应的commit节点作为起点，将dev上commit节点”平移“至master commit的后面，并且会创建全新的commit节点来替代之前commit：
+如下图：在dev上rebase master时，git会以master分支对应的commit节点作为起点，将dev上commit节点“平移”至master commit的后面，并且会创建全新的commit节点来替代之前commit：
 
 ![image-20200616102604450](/images/2020/git1/image-20200616102604450.png)
 
 
 
-接下来我们再来看一下”平移“的过程中git需要做的事情：首先我们需要以commit5作为base节点，commit1和commit6进行合并生成新的commit3，然后再将commit3的parent指向commit6。commit2到commit4转变进行了同样的步骤。因为相比较之前的commit，新的commit的parent变了，对应的hash值自然也变了。
+接下来我们再来看一下“平移”的过程中git需要做的事情：首先我们需要以commit5作为base节点，commit1和commit6进行合并生成新的commit3，然后再将commit3的parent指向commit6。commit2到commit4转变进行了同样的步骤。因为相比较之前的commit，新的commit的parent变了，对应的hash值自然也变了。
 
 所以我们在rebase的时候，你当前分支有几个commit记录那么git就需要进行合并几次。如果你当前分支比较”干净“，只有一个commit记录的话，那么你rebase需要解的冲突其实和merge是一样的，区别就是rebase不会单独生成一个新的commit来记录这次合并。
 
-关于`git pull master --rebase`和`git rebase master`的区别，git pull --rebase相当于git fetch + git rebase，正常的git pull相当于git fetch + git merge。
+关于`git pull master --rebase`和`git rebase master`的区别：git pull --rebase相当于git fetch + git rebase，正常的git pull相当于git fetch + git merge。
 
 至于什么时候用rebase什么时候用merge，我的理解是：开发只属于自己的分支时尽量使用rebase，减少无用的commit合到主分支里，多人合作时尽量使用merge，一方面减少冲突，另一个方面也让每个人的提交有迹可循。
 
-git rebase还有一个功能是可以合并commit记录：`git rbase -i HEAD~n`。合并分支还有一个办法是`git merge --squash`，区别是merge --squash会将你之前所有的记录压缩成一个新的commit，而rebase具体要怎么压缩可操作性比较高，这里就不多展开论述了。
+git rebase还有一个功能是可以合并commit记录：`git rbase -i HEAD~n`。合并分支还有一个办法是`git merge --squash`，区别是merge --squash会将你之前所有的记录压缩成一个新的commit，而rebase具体要怎么压缩的可操作性比较高，这里就不多展开论述了。
 
 ## 总结
 
@@ -306,6 +306,6 @@ git rebase还有一个功能是可以合并commit记录：`git rbase -i HEAD~n`�
 
 这个时候他再试图把dev分支往master上合并时，会发现B节点上新增的内容莫名其妙的就丢失了。根据git的合并策略我们就很容里理解这个问题：
 
-在合并两个有分叉的分支（上图中的D和A^），git会默认选择Recursive策略来进行合并，对于D和A^他们的最近父节点是B，以B为basej节点，对D和A^做Tree-Way Merge，B中拥有”B“的内容，D中也拥有”B“的内容，A^中将”B“的内容丢弃，所以合并的结果就是将”B“的内容丢弃。
+在合并两个有分叉的分支（上图中的D和A^），git会默认选择Recursive策略来进行合并，对于D和A^他们的最近父节点是B，以B为base节点，对D和A^做三项合并，B中拥有“B”的内容，D中也拥有“B”的内容，A^中将“B”的内容丢弃，所以合并的结果就是将“B”的内容丢弃。
 
-根据原理解决的方案也有很多，最简单的一种在节点D合并A^前，先revert一下生成A^^（revert的revert)，再继续合并就没问题了，或者修复问题时从A^节点单独拉一个新分支修复，而不是在之前dev分支上继续开发。
+根据原理解决的方案也有很多，最简单的一种在节点D合并A^前，先revert一下生成A^^（revert的revert），再继续合并就没问题了，或者修复问题时从A^节点单独拉一个新分支修复，而不是在之前dev分支上继续开发。
